@@ -62,6 +62,16 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
     {
         /* setting opcode from entry */
         bitwalker_write(&bw, opce->opcode, 8);
+
+        switch(opce->opcode)
+        {
+            case LA64_OPCODE_HLT:
+            case LA64_OPCODE_NOP:
+            case LA64_OPCODE_RET:
+                goto skip_parse;
+            default:
+                break;
+        }
     }
 
     /* parse parameters */
@@ -118,6 +128,8 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
     }
 
     bitwalker_write(&bw, LA64_PARAMETER_CODING_INSTR_END, 3);
+
+skip_parse:
 
     ci->image_addr += bitwalker_bytes_used(&bw);
 
