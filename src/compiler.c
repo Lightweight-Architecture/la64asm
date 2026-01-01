@@ -1,0 +1,160 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 cr4zyengineer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <la64asm/compiler.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <lautils/parser.h>
+#include <la64asm/opcode.h>
+#include <la64asm/register.h>
+
+#include <lautils/bitwalker.h>
+
+bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
+                               compiler_token_t *ct)
+{
+    /* parameter count check */
+    if(ct->subtoken_cnt <= 0)
+    {
+        printf("[!] insufficient parameters\n");
+    }
+    else if(ct->subtoken_cnt > 32)
+    {
+        printf("[!] too many parameters (32 maximum)\n");
+    }
+
+    /* initilize bitwalker */
+    bitwalker_t bw;
+    bitwalker_init(&bw, &(ci->image[ci->image_addr]), 512, BW_LITTLE_ENDIAN);
+
+    /* getting opcode entry if it exists */
+    opcode_entry_t *opce = opcode_from_string(ct->subtoken[0]);
+
+    if(opce == NULL)
+    {
+        printf("[!] illegal opcode: %s\n", ct->subtoken[0]);
+        exit(1);
+    }
+    else
+    {
+        /* setting opcode from entry */
+        bitwalker_write(&bw, opce->opcode, 8);
+    }
+
+    /* parse parameters */
+    for(uint64_t i = 1; i < ct->subtoken_cnt; i++)
+    {
+        /* parsing value */
+        parser_return_t pr = parse_value_from_string(ct->subtoken[i]);
+        if(pr.type != laParserValueTypeString)
+        {
+            /* now we gonna have to check how large this is ;w; */
+            if(pr.value <= 0xFF)
+            {
+                bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM8, 3);
+                bitwalker_write(&bw, pr.value, 8);
+            }
+            else if(pr.value <= 0xFFFF)
+            {
+                bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM16, 3);
+                bitwalker_write(&bw, pr.value, 16);
+            }
+            else if(pr.value <= 0xFFFFFFFF)
+            {
+                bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM32, 3);
+                bitwalker_write(&bw, pr.value, 32);
+            }
+            else if(pr.value <= 0xFFFFFFFFFFFFFFFF)
+            {
+                bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM64, 3);
+                bitwalker_write(&bw, pr.value, 64);
+            }
+        }
+        else
+        {
+            /* checking for register */
+            register_entry_t *reg = register_from_string(ct->subtoken[i]);
+            if(reg != NULL)
+            {
+                bitwalker_write(&bw, LA64_PARAMETER_CODING_REG, 3);
+                bitwalker_write(&bw, reg->reg, 5);
+                continue;
+            }
+
+            /* set mode to 64bit lmfao */
+            bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM64, 3);
+
+            /* it must be a label and therefore a entry in the new relocation table ;) */
+            ci->rtlb[ci->rtlb_cnt].name = strdup(ct->subtoken[i]);
+            ci->rtlb[ci->rtlb_cnt].bw = bw;
+            ci->rtlb_cnt++;
+
+            /* skip the 64bit for now */
+            bitwalker_skip(&bw, 64);
+        }
+    }
+
+    bitwalker_write(&bw, LA64_PARAMETER_CODING_INSTR_END, 3);
+
+    ci->image_addr += bitwalker_bytes_used(&bw);
+
+    return 0;
+}
+
+void la64_compiler_lowlevel(compiler_invocation_t *ci)
+{
+    /* iterate through each token */
+    for(uint64_t i = 0; i < ci->token_cnt; i++)
+    {
+        /* checking for label */
+        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL)
+        {
+            /* insert into labels */
+            code_token_label_append(ci, &(ci->token[i]));
+        }
+        else if(ci->token[i].type == COMPILER_TOKEN_TYPE_ASM)
+        {
+            la64_compiler_lowcodeline(ci, &(ci->token[i]));
+        }
+    }
+
+    /* now handling relocations */
+    for(uint64_t i = 0; i < ci->rtlb_cnt; i++)
+    {
+        /* lookup label */
+        uint64_t addr = label_lookup(ci, ci->rtlb[i].name);
+
+        /* sanity checking address */
+        if(addr == COMPILER_LABEL_NOT_FOUND)
+        {
+            printf("[!] lookup: %s not found\n", ci->rtlb[i].name);
+            exit(1);
+        }
+
+        /* using da bitwalker to fixup address */
+        bitwalker_write(&(ci->rtlb[i].bw), addr, 64);
+    }
+}

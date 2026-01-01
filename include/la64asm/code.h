@@ -1,0 +1,39 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 cr4zyengineer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef COMPILER_CODE_H
+#define COMPILER_CODE_H
+
+#include <stdlib.h>
+#include <la64asm/type.h>
+
+void get_code_buffer(char **files, int file_cnt, compiler_invocation_t *ci);
+void code_remove_comments(compiler_invocation_t *ci);
+void code_remove_newlines(compiler_invocation_t *ci);
+void code_replace_tab_with_spaces(compiler_invocation_t *ci);
+void code_tokengen(compiler_invocation_t *ci);
+void code_binary_spitout(compiler_invocation_t *ci);
+char *code_token_bind(compiler_token_t *ct, unsigned char at_i);
+
+#endif /* COMPILER_CODE_H */
