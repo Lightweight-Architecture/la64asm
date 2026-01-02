@@ -28,43 +28,31 @@
 #include <string.h>
 #include <la64asm/compile.h>
 
-void print_usage(const char *binary_name)
-{
-    if(binary_name != NULL)
-    {
-        fprintf(stderr, "Usage: %s -c <la16 (.l16) files>\n", binary_name);
-    }
-}
-
 int main(int argc, char *argv[])
 {
     /* checking for sufficient arguments */
-    if(argc < 2)
+    if(argc < 2 || strcmp(argv[1], "-c") != 0)
     {
-        print_usage(argv[0]);
+        fprintf(stderr, "Usage: %s -c <l64 assembly files>\n", argv[0]);
         return 1;
     }
-    else if(strcmp(argv[1], "-c") == 0)
+    
+    /* allocating memory for file list and copying file paths into it */
+    char **files = calloc(sizeof(char*), argc - 2);
+    for(int i = 0; i < (argc - 2); i++)
     {
-        /* getting list of files */
-        char **files = calloc(sizeof(char*), argc - 2);
-        for(int i = 0; i < (argc - 2); i++)
-        {
-            files[i] = strdup(argv[i + 2]);
-        }
-        compile_files(files, argc - 2);
-        for(int i = 0; i < (argc - 2); i++)
-        {
-            free(files[i]);
-        }
-        free(files);
+        files[i] = strdup(argv[i + 2]);
     }
-    else
+
+    /* compiling using those files */
+    compile_files((const char**)files, argc - 2);
+
+    /* releasing those files */
+    for(int i = 0; i < (argc - 2); i++)
     {
-        /* printing usage */
-        print_usage(argv[0]);
-        return 1;
+        free(files[i]);
     }
+    free(files);
 
     return 0;
 }

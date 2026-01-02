@@ -64,7 +64,7 @@ void compiler_invocation_dealloc(compiler_invocation_t *ci)
     free(ci);
 }
 
-void compile_files(char **files,
+void compile_files(const char **files,
                    int file_cnt)
 {
     /* allocating compiler invocation */

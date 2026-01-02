@@ -27,6 +27,6 @@
 
 #include <la64asm/type.h>
 
-void compile_files(char **files, int file_cnt);
+void compile_files(const char **files, int file_cnt);
 
 #endif /* COMPILER_COMPILE_H */

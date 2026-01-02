@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-void get_code_buffer(char **files,
+void get_code_buffer(const char **files,
                      int file_cnt,
                      compiler_invocation_t *ci)
 {

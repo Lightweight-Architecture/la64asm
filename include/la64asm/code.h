@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <la64asm/type.h>
 
-void get_code_buffer(char **files, int file_cnt, compiler_invocation_t *ci);
+void get_code_buffer(const char **files, int file_cnt, compiler_invocation_t *ci);
 void code_remove_comments(compiler_invocation_t *ci);
 void code_remove_newlines(compiler_invocation_t *ci);
 void code_replace_tab_with_spaces(compiler_invocation_t *ci);
