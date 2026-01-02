@@ -327,6 +327,10 @@ void code_tokengen(compiler_invocation_t *ci)
                 {
                     ci->token[i].type = COMPILER_TOKEN_TYPE_LABEL;
                 }
+                else if(ci->token[i].subtoken[0][0] == '.')
+                {
+                    ci->token[i].type = COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE;
+                }
                 else
                 {
                     printf("[!] \"%s\" is not a legal label definition \n", ci->token[i].token);

@@ -58,7 +58,8 @@ void code_token_label(compiler_invocation_t *ci)
     ci->label_cnt = 0;
     for(int i = 0; i < ci->token_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL)
+        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL ||
+           ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE)
         {
             (ci->label_cnt)++;
             (ci->label_cnt_sec)++;
@@ -84,11 +85,40 @@ void code_token_label_append(compiler_invocation_t *ci,
     /* assign address to label */
     ci->label[ci->label_cnt].addr = ci->image_addr;
 
-    /* copy name */
+    /* copying label name */
     size_t size = strlen(ct->token);
     char *name = malloc(size);
     memcpy(name, ct->token, size - 1);
     name[size - 1] = '\0';
+
+    /* checking if its in scope */
+    if(ct->type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE)
+    {
+        /* null poiner checking scope */
+        if(ci->label_scope == NULL)
+        {
+            printf("[!] no scope for label in scope\n");
+            exit(1);
+        }
+
+        /* copy name temporairly  */
+        char *tmp_name = strdup(name);
+
+        /* adjust size */
+        size += strlen(ci->label_scope);
+
+        /* reallocate buffer */
+        name = realloc(name, size);
+
+        /* recopy */
+        sprintf(name, "%s%s", ci->label_scope, ct->token);
+        name[size - 1] = '\0';
+    }
+    else
+    {
+        /* set it as scope */
+        ci->label_scope = name;
+    }
 
     /* checking for duplicated labels */
     if(code_label_exists(ci, name))

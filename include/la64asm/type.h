@@ -32,8 +32,9 @@
 
 #define COMPILER_TOKEN_TYPE_ASM             0b000
 #define COMPILER_TOKEN_TYPE_LABEL           0b001
-#define COMPILER_TOKEN_TYPE_SECTION         0b010
-#define COMPILER_TOKEN_TYPE_SECTION_DATA    0b011
+#define COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE  0b010
+#define COMPILER_TOKEN_TYPE_SECTION         0b011
+#define COMPILER_TOKEN_TYPE_SECTION_DATA    0b100
 
 typedef unsigned char compiler_token_type_t;
 
@@ -59,6 +60,7 @@ typedef struct {
     char *code;                             /* raw code */
     compiler_token_t *token;                /* token array */
     uint64_t token_cnt;                     /* count of tokens */
+    char *label_scope;                      /* current resolved label scope */
     compiler_label_t *label;                /* label array */
     uint64_t label_cnt;                     /* count of labels */
     uint64_t label_cnt_sec;                 /* count of labels */

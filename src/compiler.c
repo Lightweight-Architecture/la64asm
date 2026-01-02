@@ -118,7 +118,19 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
             bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM64, 3);
 
             /* it must be a label and therefore a entry in the new relocation table ;) */
-            ci->rtlb[ci->rtlb_cnt].name = strdup(ct->subtoken[i]);
+            /* checking label type in question */
+            char *label = strdup(ct->subtoken[i]);
+
+            if(label[0] == '.')
+            {
+                size_t size = strlen(ct->subtoken[i]);
+                size_t scope_size = strlen(ci->label_scope);
+                free(label);
+                label = malloc(size + scope_size);
+                sprintf(label, "%s%s", ci->label_scope, ct->subtoken[i]);
+            }
+
+            ci->rtlb[ci->rtlb_cnt].name = label;
             ci->rtlb[ci->rtlb_cnt].bw = bw;
             ci->rtlb_cnt++;
 
@@ -142,7 +154,8 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
     for(uint64_t i = 0; i < ci->token_cnt; i++)
     {
         /* checking for label */
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL)
+        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL ||
+           ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE)
         {
             /* insert into labels */
             code_token_label_append(ci, &(ci->token[i]));
