@@ -46,10 +46,6 @@ opcode_entry_t opcode_table[LA64_OPCODE_MAX + 1] = {
     { .name = "std", .opcode = LA64_OPCODE_STD },
     { .name = "stq", .opcode = LA64_OPCODE_STQ },
 
-    /* io operations */
-    { .name = "in", .opcode = LA64_OPCODE_IN },
-    { .name = "out", .opcode = LA64_OPCODE_OUT },
-
     /* alu operations */
     { .name = "add", .opcode = LA64_OPCODE_ADD },
     { .name = "sub", .opcode = LA64_OPCODE_SUB },
