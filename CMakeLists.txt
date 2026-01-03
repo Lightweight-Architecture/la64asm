@@ -29,6 +29,7 @@ add_executable(la64asm
     src/opcode.c
     src/register.c
     src/section.c
+    src/macro.c
 )
 
 target_include_directories(la64asm

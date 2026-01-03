@@ -29,6 +29,7 @@
 #include <la64asm/label.h>
 #include <la64asm/compiler.h>
 #include <la64asm/section.h>
+#include <la64asm/macro.h>
 
 compiler_invocation_t *compiler_invocation_alloc(void)
 {
@@ -88,6 +89,7 @@ void compile_files(const char **files,
     /* allocate space for the low level compiler to put resolved addresses at */
     code_token_label(ci);
     code_token_section(ci);
+    code_token_macro(ci);
 
     /* finally compiling it to machine code */
     la64_compiler_lowlevel(ci);

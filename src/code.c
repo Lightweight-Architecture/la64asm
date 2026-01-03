@@ -349,6 +349,22 @@ void code_tokengen(compiler_invocation_t *ci)
                 continue;
             }
         }
+
+        if(strcmp(ci->token[i].subtoken[0], "%macro%") == 0)
+        {
+            ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_MACRO;
+            continue;
+        }
+        else if(strcmp(ci->token[i].subtoken[0], "%macroend%") == 0)
+        {
+            ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_MACROEND;
+            continue;
+        }
+        else if(strcmp(ci->token[i].subtoken[0], "%define%") == 0)
+        {
+            ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_MACRODEF;
+            continue;
+        }
         
         if(section_mode)
         {
