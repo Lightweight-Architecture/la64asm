@@ -97,12 +97,6 @@ void compile_files(const char **files,
     /* insert entry */
     code_token_label_insert_start(ci);
 
-    /*code_token_label_insert_start(ci);
-    code_token_constant(ci);*/
-
     /* spitting out binary */
     code_binary_spitout(ci);
-
-    /* deallocating compiler invocation */
-    //compiler_invocation_dealloc(ci);
 }
