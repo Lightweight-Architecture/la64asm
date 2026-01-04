@@ -108,7 +108,7 @@ void code_token_label_append(compiler_invocation_t *ci,
         size += strlen(ci->label_scope);
 
         /* reallocate buffer */
-        name = realloc(name, size);
+        name = realloc(name, (size) + 1);
 
         /* recopy */
         sprintf(name, "%s%s", ci->label_scope, ct->token);

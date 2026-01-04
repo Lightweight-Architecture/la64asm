@@ -126,7 +126,7 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
                 size_t size = strlen(ct->subtoken[i]);
                 size_t scope_size = strlen(ci->label_scope);
                 free(label);
-                label = malloc(size + scope_size);
+                label = malloc((size + scope_size) + 1);
                 sprintf(label, "%s%s", ci->label_scope, ct->subtoken[i]);
             }
 
