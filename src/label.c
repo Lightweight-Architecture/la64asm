@@ -165,5 +165,7 @@ void code_token_label_insert_start(compiler_invocation_t *ci)
     }
 
     /* writing start address into the start of the image */
-    *((uint64_t*)ci->image) = addr;
+    bitwalker_t bw;
+    bitwalker_init(&bw, ci->image, 8, BW_LITTLE_ENDIAN);
+    bitwalker_write(&bw, addr, 64);
 }
