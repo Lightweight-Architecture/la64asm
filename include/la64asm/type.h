@@ -51,7 +51,6 @@ typedef struct {
 typedef struct {
     char *name;                             /* name of resolved label */
     uint64_t addr;                          /* address of resolved label */
-    uint8_t rel;                            /* relative addressing mode */
 } compiler_label_t;
 
 typedef struct {

@@ -149,7 +149,6 @@ void code_token_section(compiler_invocation_t *ci)
                     ci->label = realloc(ci->label, sizeof(compiler_label_t) * ci->label_cnt_sec);
                     ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt - 1].addr = ci->image_addr;
-                    ci->label[ci->label_cnt - 1].rel = 0;
 
                     /* checking if its known */
                     int is_word = 0;
@@ -237,7 +236,6 @@ void code_token_section(compiler_invocation_t *ci)
                     ci->label = realloc(ci->label, sizeof(compiler_label_t) * ci->label_cnt_sec);
                     ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt - 1].addr = ci->image_addr;
-                    ci->label[ci->label_cnt - 1].rel = 0;
 
                     /* offset image address by value */
                     parser_return_t pr = parse_value_from_string(ci->token[i].subtoken[1]);

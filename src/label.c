@@ -129,31 +129,23 @@ void code_token_label_append(compiler_invocation_t *ci,
     }
 
     ci->label[ci->label_cnt].name = name;
-    ci->label[ci->label_cnt++].rel = 0;
 }
 
 uint64_t label_lookup(compiler_invocation_t *ci,
                       const char *name)
 {
-    // Iterating all labels to find the correct label
-    unsigned int addr = COMPILER_LABEL_NOT_FOUND;
+    /* iterating through all labels */
     for(int i = 0; i < ci->label_cnt; i++)
     {
+        /* checking if request name matches */
         if(strcmp(ci->label[i].name, name) == 0)
         {
-            if(ci->label[i].rel)
-            {
-                addr = ci->image_text_start_addr + ci->label[i].addr;
-            }
-            else
-            {
-                addr = ci->label[i].addr;
-            }
-            break;
+            /* returning label address*/
+            return ci->label[i].addr;
         }
     }
 
-    return addr;
+    return COMPILER_LABEL_NOT_FOUND;
 }
 
 void code_token_label_insert_start(compiler_invocation_t *ci)
