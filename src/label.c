@@ -55,7 +55,8 @@ bool code_label_exists(compiler_invocation_t *ci,
 void code_token_label(compiler_invocation_t *ci)
 {
     /* counting labels caught at token parsing */
-    ci->label_cnt = 0;
+    ci->label_cnt = 1;
+    ci->label_cnt_sec = 1;
     for(int i = 0; i < ci->token_cnt; i++)
     {
         if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL ||

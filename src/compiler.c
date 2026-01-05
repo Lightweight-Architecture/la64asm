@@ -165,6 +165,11 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
             la64_compiler_lowcodeline(ci, &(ci->token[i]));
         }
     }
+    
+    /* append binary end label */
+    ci->label[ci->label_cnt].addr = ci->image_addr;
+    ci->label[ci->label_cnt].name = strdup("__la64_exec_img_end");
+    ci->label[ci->label_cnt++].rel = 0;
 
     /* now handling relocations */
     for(uint64_t i = 0; i < ci->rtlb_cnt; i++)
