@@ -65,7 +65,6 @@ typedef struct {
     char *label_scope;                      /* current resolved label scope */
     compiler_label_t *label;                /* label array */
     uint64_t label_cnt;                     /* count of labels */
-    uint64_t label_cnt_sec;                 /* count of labels */
     reloc_table_entry rtlb[0xFFFF];         /* relocation table */
     uint64_t rtlb_cnt;                      /* count of relocation table entries */
     uint8_t image[0xFFFFFF];                /* replace with better technique that is more incremental */

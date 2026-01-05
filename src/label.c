@@ -56,14 +56,13 @@ void code_token_label(compiler_invocation_t *ci)
 {
     /* counting labels caught at token parsing */
     ci->label_cnt = 1;
-    ci->label_cnt_sec = 1;
     for(int i = 0; i < ci->token_cnt; i++)
     {
         if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL ||
-           ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE)
+           ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE ||
+           ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA)
         {
             (ci->label_cnt)++;
-            (ci->label_cnt_sec)++;
         }
     }
 
@@ -128,7 +127,7 @@ void code_token_label_append(compiler_invocation_t *ci,
         exit(1);
     }
 
-    ci->label[ci->label_cnt].name = name;
+    ci->label[ci->label_cnt++].name = name;
 }
 
 uint64_t label_lookup(compiler_invocation_t *ci,
