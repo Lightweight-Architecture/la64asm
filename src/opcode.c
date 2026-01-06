@@ -32,6 +32,7 @@ opcode_entry_t opcode_table[LA64_OPCODE_MAX + 1] = {
     { .name = "nop", .opcode = LA64_OPCODE_NOP },
 
     /* data operations */
+    { .name = "clr", .opcode = LA64_OPCODE_CLR },
     { .name = "mov", .opcode = LA64_OPCODE_MOV },
     { .name = "swp", .opcode = LA64_OPCODE_SWP },
     { .name = "swpz", .opcode = LA64_OPCODE_SWPZ },
