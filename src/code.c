@@ -312,10 +312,22 @@ void code_tokengen(compiler_invocation_t *ci)
     unsigned char section_mode = 0b0;
     for(unsigned long i = 0; i < ci->token_cnt; i++)
     {
+        /* checking if valid token in the first place */
+        if(ci->token[i].subtoken_cnt == 0)
+        {
+            continue;
+        }
+
         if(ci->token[i].subtoken_cnt < 2)
         {
             // Label Check
             size_t size = strlen(ci->token[i].subtoken[0]);
+
+            /* anti wrap around check */
+            if(size == 0)
+            {
+                continue;
+            }
 
             // Check if the last character of the first subtoken is a ':'
             if(ci->token[i].subtoken[0][size - 1] == ':')
