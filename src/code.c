@@ -419,7 +419,7 @@ char *code_token_bind(compiler_token_t *ct, unsigned char at_i)
     }
 
     /* now try to alloc */
-    char *name = calloc(1, size);
+    char *name = calloc(1, size + ct->subtoken_cnt);
     char *ptr = name;
 
     /* doing shit */
@@ -428,7 +428,9 @@ char *code_token_bind(compiler_token_t *ct, unsigned char at_i)
         size_t size = strlen(ct->subtoken[i]);
         memcpy(ptr, ct->subtoken[i], size);
         ptr += size;
+        *(ptr++) = ',';
     }
+    *(--ptr) = '\0'; 
 
     return name;
 }

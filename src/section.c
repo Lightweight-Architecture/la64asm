@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <la64asm/section.h>
 #include <lautils/parser.h>
+#include <lautils/bitwalker.h>
 #include <la64asm/code.h>
 
 static char *trim(char *str)
@@ -149,10 +150,18 @@ void code_token_section(compiler_invocation_t *ci)
                     ci->label[ci->label_cnt - 1].addr = ci->image_addr;
 
                     /* checking if its known */
-                    int is_word = 0;
+                    int mode = 0;
                     if(strcmp(ci->token[i].subtoken[1], "dw") == 0)
                     {
-                        is_word = 1;
+                        mode = 1;
+                    }
+                    else if(strcmp(ci->token[i].subtoken[1], "dd") == 0)
+                    {
+                        mode = 2;
+                    }
+                    else if(strcmp(ci->token[i].subtoken[1], "dq") == 0)
+                    {
+                        mode = 3;
                     }
                     else if(strcmp(ci->token[i].subtoken[1], "db") != 0)
                     {
@@ -203,15 +212,30 @@ void code_token_section(compiler_invocation_t *ci)
                         }
                         else
                         {
+                            bitwalker_t bw;
+
                             /* storing value */
-                            if(is_word)
+                            if(mode == 1)
                             {
-                                ci->image[ci->image_addr] = pr.value & 0xFF;
-                                ci->image[ci->image_addr + 1] = (pr.value >> 8) & 0xFF;
-                                ci->image_addr += 2;
+                                bitwalker_init(&bw, &(ci->image[ci->image_addr]), sizeof(uint16_t), BW_LITTLE_ENDIAN);
+                                bitwalker_write(&bw, pr.value, 16);
+                                ci->image_addr += bitwalker_bytes_used(&bw);
+                            }
+                            else if(mode == 2)
+                            {
+                                bitwalker_init(&bw, &(ci->image[ci->image_addr]), sizeof(uint32_t), BW_LITTLE_ENDIAN);
+                                bitwalker_write(&bw, pr.value, 32);
+                                ci->image_addr += bitwalker_bytes_used(&bw);
+                            }
+                            else if(mode == 3)
+                            {
+                                bitwalker_init(&bw, &(ci->image[ci->image_addr]), sizeof(uint64_t), BW_LITTLE_ENDIAN);
+                                bitwalker_write(&bw, pr.value, 64);
+                                ci->image_addr += bitwalker_bytes_used(&bw);
                             }
                             else
                             {
+
                                 ci->image[ci->image_addr] = pr.value;
                                 ci->image_addr++;
                             }
