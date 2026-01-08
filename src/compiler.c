@@ -79,6 +79,8 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
     {
         /* parsing value */
         parser_return_t pr = parse_value_from_string(ct->subtoken[i]);
+
+        /* checking for intermediates */
         if(pr.type != laParserValueTypeString)
         {
             /* now we gonna have to check how large this is ;w; */
@@ -102,41 +104,42 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
                 bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM64, 3);
                 bitwalker_write(&bw, pr.value, 64);
             }
+
+            continue;
+        }
+
+        /* checking for register */
+        register_entry_t *reg = register_from_string(ct->subtoken[i]);
+
+        if(reg != NULL)
+        {
+            bitwalker_write(&bw, LA64_PARAMETER_CODING_REG, 3);
+            bitwalker_write(&bw, reg->reg, 5);
+            continue;
+        }
+        
+        /* set mode to 64bit lmfao */
+        bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM64, 3);
+
+        /* it must be a label and therefore a entry in the new relocation table ;) */
+        /* checking label type in question */
+        char *label = NULL;
+
+        /* checking for local label */
+        if(ct->subtoken[i][0] == '.')
+        {
+            asprintf(&label, "%s%s", ci->label_scope, ct->subtoken[i]);
         }
         else
         {
-            /* checking for register */
-            register_entry_t *reg = register_from_string(ct->subtoken[i]);
-            if(reg != NULL)
-            {
-                bitwalker_write(&bw, LA64_PARAMETER_CODING_REG, 3);
-                bitwalker_write(&bw, reg->reg, 5);
-                continue;
-            }
-
-            /* set mode to 64bit lmfao */
-            bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM64, 3);
-
-            /* it must be a label and therefore a entry in the new relocation table ;) */
-            /* checking label type in question */
-            char *label = strdup(ct->subtoken[i]);
-
-            if(label[0] == '.')
-            {
-                size_t size = strlen(ct->subtoken[i]);
-                size_t scope_size = strlen(ci->label_scope);
-                free(label);
-                label = malloc((size + scope_size) + 1);
-                sprintf(label, "%s%s", ci->label_scope, ct->subtoken[i]);
-            }
-
-            ci->rtlb[ci->rtlb_cnt].name = label;
-            ci->rtlb[ci->rtlb_cnt].bw = bw;
-            ci->rtlb_cnt++;
-
-            /* skip the 64bit for now */
-            bitwalker_skip(&bw, 64);
+            label = strdup(ct->subtoken[i]);
         }
+        
+        ci->rtlb[ci->rtlb_cnt].name = label;
+        ci->rtlb[ci->rtlb_cnt++].bw = bw;
+
+        /* skip the 64bit for now */
+        bitwalker_skip(&bw, 64);
     }
 
     bitwalker_write(&bw, LA64_PARAMETER_CODING_INSTR_END, 3);
@@ -168,8 +171,7 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
     
     /* append binary end label */
     ci->label[ci->label_cnt].addr = ci->image_addr;
-    ci->label[ci->label_cnt].name = strdup("__la64_exec_img_end");
-    ci->label_cnt++;
+    ci->label[ci->label_cnt++].name = strdup("__la64_exec_img_end");
 
     /* now handling relocations */
     for(uint64_t i = 0; i < ci->rtlb_cnt; i++)
