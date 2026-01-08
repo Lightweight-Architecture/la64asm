@@ -44,6 +44,13 @@ void code_token_section(compiler_invocation_t *ci)
                 i++;
                 for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
                 {
+                    /* checking count */
+                    if(ci->token[i].subtoken_cnt < 3)
+                    {
+                        printf("[!] not enough tokens for section data in .data\n");
+                        exit(1);
+                    }
+
                     /* inserting address as label */
                     ci->label[ci->label_cnt].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt++].addr = ci->image_addr;
@@ -104,12 +111,22 @@ void code_token_section(compiler_invocation_t *ci)
                 i++;
                 for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
                 {
+                    /* checking count */
+                    if(ci->token[i].subtoken_cnt < 2)
+                    {
+                        printf("[!] not enough tokens for section data in .bss\n");
+                        exit(1);
+                    }
+
                     /* insert label into label array */
                     ci->label[ci->label_cnt].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt++].addr = ci->image_addr;
 
                     /* offset image address by value */
                     parser_return_t pr = parse_value_from_string(ci->token[i].subtoken[1]);
+
+                    /* checking if the type makes sense */
+
                     ci->image_addr += pr.value;
                 }
                 i--;
