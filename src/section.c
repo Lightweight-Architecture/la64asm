@@ -45,23 +45,22 @@ void code_token_section(compiler_invocation_t *ci)
                 for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
                 {
                     /* inserting address as label */
-                    ci->label_cnt++;
-                    ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
-                    ci->label[ci->label_cnt - 1].addr = ci->image_addr;
+                    ci->label[ci->label_cnt].name = strdup(ci->token[i].subtoken[0]);
+                    ci->label[ci->label_cnt++].addr = ci->image_addr;
 
                     /* checking if its known */
-                    int mode = 0;
+                    int dbs = 8;
                     if(strcmp(ci->token[i].subtoken[1], "dw") == 0)
                     {
-                        mode = 1;
+                        dbs = 16;
                     }
                     else if(strcmp(ci->token[i].subtoken[1], "dd") == 0)
                     {
-                        mode = 2;
+                        dbs = 32;
                     }
                     else if(strcmp(ci->token[i].subtoken[1], "dq") == 0)
                     {
-                        mode = 3;
+                        dbs = 64;
                     }
                     else if(strcmp(ci->token[i].subtoken[1], "db") != 0)
                     {
@@ -91,30 +90,9 @@ void code_token_section(compiler_invocation_t *ci)
                             bitwalker_t bw;
 
                             /* storing value */
-                            if(mode == 1)
-                            {
-                                bitwalker_init(&bw, &(ci->image[ci->image_addr]), sizeof(uint16_t), BW_LITTLE_ENDIAN);
-                                bitwalker_write(&bw, pr.value, 16);
-                                ci->image_addr += bitwalker_bytes_used(&bw);
-                            }
-                            else if(mode == 2)
-                            {
-                                bitwalker_init(&bw, &(ci->image[ci->image_addr]), sizeof(uint32_t), BW_LITTLE_ENDIAN);
-                                bitwalker_write(&bw, pr.value, 32);
-                                ci->image_addr += bitwalker_bytes_used(&bw);
-                            }
-                            else if(mode == 3)
-                            {
-                                bitwalker_init(&bw, &(ci->image[ci->image_addr]), sizeof(uint64_t), BW_LITTLE_ENDIAN);
-                                bitwalker_write(&bw, pr.value, 64);
-                                ci->image_addr += bitwalker_bytes_used(&bw);
-                            }
-                            else
-                            {
-
-                                ci->image[ci->image_addr] = pr.value;
-                                ci->image_addr++;
-                            }
+                            bitwalker_init(&bw, &(ci->image[ci->image_addr]), dbs / 8, BW_LITTLE_ENDIAN);
+                            bitwalker_write(&bw, pr.value, dbs);
+                            ci->image_addr += bitwalker_bytes_used(&bw);
                         }
                     }
                 }
@@ -127,9 +105,8 @@ void code_token_section(compiler_invocation_t *ci)
                 for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
                 {
                     /* insert label into label array */
-                    ci->label_cnt++;
-                    ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
-                    ci->label[ci->label_cnt - 1].addr = ci->image_addr;
+                    ci->label[ci->label_cnt].name = strdup(ci->token[i].subtoken[0]);
+                    ci->label[ci->label_cnt++].addr = ci->image_addr;
 
                     /* offset image address by value */
                     parser_return_t pr = parse_value_from_string(ci->token[i].subtoken[1]);
