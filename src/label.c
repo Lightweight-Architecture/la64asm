@@ -87,8 +87,7 @@ void code_token_label_append(compiler_invocation_t *ci,
 
     /* copying label name */
     size_t size = strlen(ct->token);
-    char *name = malloc(size);
-    memcpy(name, ct->token, size - 1);
+    char *name = strdup(ct->token);
     name[size - 1] = '\0';
 
     /* checking if its in scope */
@@ -100,9 +99,6 @@ void code_token_label_append(compiler_invocation_t *ci,
             printf("[!] no scope for label in scope\n");
             exit(1);
         }
-
-        /* copy name temporairly  */
-        char *tmp_name = strdup(name);
 
         /* adjust size */
         size += strlen(ci->label_scope);
