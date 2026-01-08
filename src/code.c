@@ -190,29 +190,6 @@ void code_remove_comments(compiler_invocation_t *ci)
     }
 }
 
-void code_remove_newlines(compiler_invocation_t *ci)
-{
-    size_t src = 0, dst = 0;
-    bool last_was_newline = true;
-    while (ci->code[src] != '\0')
-    {
-        if (ci->code[src] == '\r' || ci->code[src] == '\n') {
-            if (!last_was_newline) {
-                ci->code[dst++] = '\n';
-                last_was_newline = true;
-            }
-            if (ci->code[src] == '\r' && ci->code[src + 1] == '\n') {
-                src++;
-            }
-            src++;
-            continue;
-        }
-        ci->code[dst++] = ci->code[src++];
-        last_was_newline = false;
-    }
-    ci->code[dst] = '\0';
-}
-
 void code_tokengen(compiler_invocation_t *ci)
 {
     /* Gathering token count */

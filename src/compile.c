@@ -80,7 +80,6 @@ void compile_files(const char **files,
      * information to process
      */
     code_remove_comments(ci);
-    code_remove_newlines(ci);
 
     /* generating tokens,labels,sections out of the code */
     code_tokengen(ci);
