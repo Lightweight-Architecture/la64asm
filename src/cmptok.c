@@ -32,7 +32,7 @@ _Thread_local char otoken[255];
 
 static void cmptok_skip_triggers(void)
 {
-    if(ltokptr[0] != ' ')
+    if(ltokptr[0] != ' ' && ltokptr[0] != ',')
     {
         return;
     }
@@ -64,7 +64,7 @@ const char *cmptok(const char *token)
     while(a < 255)
     {
         // Check if its a space or a delimeter
-        if(ltokptr[0] == ' ' && token_mode == CMPTOK_TOKEN_MODE_NONE)
+        if((ltokptr[0] == ' ' || ltokptr[0] == ',') && token_mode == CMPTOK_TOKEN_MODE_NONE)
         {
             cmptok_skip_triggers();
             break;
@@ -89,14 +89,6 @@ const char *cmptok(const char *token)
             else if(token_mode == CMPTOK_TOKEN_MODE_METER)
             {
                 token_mode = CMPTOK_TOKEN_MODE_NONE;
-            }
-        }
-        else if(ltokptr[0] == ',')
-        {
-            if(token_mode == CMPTOK_TOKEN_MODE_NONE)
-            {
-                ltokptr++;
-                continue;
             }
         }
 

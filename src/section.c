@@ -31,106 +31,6 @@
 #include <lautils/bitwalker.h>
 #include <la64asm/code.h>
 
-static char *trim(char *str)
-{
-    /* null pointer check */
-    if(str == NULL)
-    {
-        return NULL;
-    }
-
-    /* checking if its a space */
-    while(isspace((unsigned char)*str))
-    {
-        str++;
-    }
-
-    /* checking if its a null terminator*/
-    if(*str == '\0')
-    {
-        return str;
-    }
-
-    /* calculating the end */
-    char *end = str + strlen(str) - 1;
-
-    /* checking if its a space */
-    while(end > str && isspace((unsigned char)*end))
-    {
-        end--;
-    }
-
-    /* null terminating */
-    end[1] = '\0';
-    
-    return str;
-}
-
-static char **parse_csv_quoted(const char *input, unsigned long *count)
-{
-    /* null pointer check */
-    if(input == NULL || count == NULL)
-    {
-        return NULL;
-    }
-
-    /* duplicate input */
-    char *token = strdup(input);
-    
-    unsigned long chain_cnt = 0;
-    char *ptr = token;
-    int in_quotes = 0;
-
-    /* waiting till input is null terminated */
-    while(*ptr)
-    {
-        if(*ptr == '"' || *ptr == '\'')
-        {
-            in_quotes = !in_quotes;
-        }
-        else if(*ptr == ',' && !in_quotes)
-        {
-            chain_cnt++;
-        }
-        ptr++;
-    }
-    chain_cnt++;
-
-    /* allocating chain */
-    char **chain = calloc(chain_cnt, sizeof(char*));
-
-    free(token);
-    token = strdup(input);
-    ptr = token;
-    in_quotes = 0;
-    char *start = ptr;
-    chain_cnt = 0;
-
-    /* second pass */
-    while(*ptr)
-    {
-        if(*ptr == '"' || *ptr == '\'')
-        {
-            in_quotes = !in_quotes;
-        }
-        else if(*ptr == ',' && !in_quotes)
-        {
-            *ptr = '\0';
-            chain[chain_cnt++] = strdup(trim(start));
-            start = ptr + 1;
-        }
-        ptr++;
-    }
-    if(start <= ptr)
-    {
-        chain[chain_cnt++] = strdup(trim(start));
-    }
-
-    free(token);
-    *count = chain_cnt;
-    return chain;
-}
-
 void code_token_section(compiler_invocation_t *ci)
 {
     /* iterating for section token type */
@@ -169,35 +69,11 @@ void code_token_section(compiler_invocation_t *ci)
                         exit(1);
                     }
 
-                    /* binding token at a certain position by its subtokens */
-                    unsigned long chain_cnt = 0;
-                    char *chain_str = code_token_bind(&ci->token[i], 2);
-
-                    /* null pointer check */
-                    if(chain_str == NULL)
-                    {
-                        printf("[!] null pointer exception\n");
-                        exit(1);
-                    }
-
-                    /* getting chain */
-                    char **chain = parse_csv_quoted(chain_str, &chain_cnt);
-
-                    /* null pointer check */
-                    if(chain == NULL)
-                    {
-                        printf("[!] null pointer exception\n");
-                        exit(1);
-                    }
-
-                    /* freeing bound chain string buffer */
-                    free(chain_str);
-
                     /* iterating through the chain */
-                    for(unsigned long a = 0; a < chain_cnt; a++)
+                    for(unsigned long a = 2; a < ci->token[i].subtoken_cnt; a++)
                     {
                         /* using low level type parser */
-                        parser_return_t pr = parse_value_from_string(chain[a]);
+                        parser_return_t pr = parse_value_from_string(ci->token[i].subtoken[a]);
 
                         /* checking type */
                         if(pr.type == laParserValueTypeBuffer)
@@ -240,9 +116,7 @@ void code_token_section(compiler_invocation_t *ci)
                                 ci->image_addr++;
                             }
                         }
-                        free(chain[a]);
                     }
-                    free(chain);
                 }
                 i--;
             }
