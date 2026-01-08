@@ -30,28 +30,6 @@
 #include <la64asm/label.h>
 #include <unistd.h>
 
-bool code_label_exists(compiler_invocation_t *ci,
-                       const char *name)
-{
-    /* null pointer check */
-    if(ci == NULL || name == NULL)
-    {
-        return false;
-    }
-
-    /* iterate through all labels */
-    for(int i = 0; i < ci->label_cnt; i++)
-    {
-        if(strcmp(ci->label[i].name, name) == 0)
-        {
-            return true;
-        }
-    }
-
-    /* it doesnt exist */
-    return false;
-}
-
 void code_token_label(compiler_invocation_t *ci)
 {
     /* counting labels caught at token parsing */
@@ -117,7 +95,7 @@ void code_token_label_append(compiler_invocation_t *ci,
     }
 
     /* checking for duplicated labels */
-    if(code_label_exists(ci, name))
+    if(label_lookup(ci, name) != COMPILER_LABEL_NOT_FOUND)
     {
         printf("[!] duplicate label: %s\n", name);
         exit(1);
@@ -147,6 +125,7 @@ void code_token_label_insert_start(compiler_invocation_t *ci)
 {
     /* finding start label */
     uint64_t addr = label_lookup(ci, "_start");
+
     if(addr == COMPILER_LABEL_NOT_FOUND)
     {
         exit(1);
