@@ -213,20 +213,6 @@ void code_remove_newlines(compiler_invocation_t *ci)
     ci->code[dst] = '\0';
 }
 
-void code_replace_tab_with_spaces(compiler_invocation_t *ci)
-{
-    size_t src = 0;
-    while(ci->code[src] != '\0')
-    {
-        if(ci->code[src] == '\t')
-        {
-            /* replacing with space */
-            ci->code[src] = ' ';
-        }
-        src++;
-    }
-}
-
 void code_tokengen(compiler_invocation_t *ci)
 {
     /* Gathering token count */

@@ -31,7 +31,6 @@
 void get_code_buffer(const char **files, int file_cnt, compiler_invocation_t *ci);
 void code_remove_comments(compiler_invocation_t *ci);
 void code_remove_newlines(compiler_invocation_t *ci);
-void code_replace_tab_with_spaces(compiler_invocation_t *ci);
 void code_tokengen(compiler_invocation_t *ci);
 void code_binary_spitout(compiler_invocation_t *ci);
 
