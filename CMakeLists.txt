@@ -43,3 +43,11 @@ target_link_libraries(la64asm
 )
 
 target_compile_features(la64asm PRIVATE c_std_99)
+
+install(TARGETS la64asm
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/
+    DESTINATION include
+)
