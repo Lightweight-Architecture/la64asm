@@ -28,82 +28,138 @@
 #include <la64asm/cmptok.h>
 
 _Thread_local const char *ltokptr;
-_Thread_local char otoken[255];
+_Thread_local char otoken[512];
 
-static void cmptok_skip_triggers(void)
+static inline void cmptok_skip_triggers(void)
 {
-    if(ltokptr[0] != ' ' &&
-       ltokptr[0] != ',' &&
-       ltokptr[0] != '\t')
+    while(1)
     {
-        return;
-    }
+        if(ltokptr[0] == ' ' ||
+           ltokptr[0] == ',' ||
+           ltokptr[0] == '\t')
+        {
+            ltokptr++;
+            continue;
+        }
 
-    ltokptr++;
-    cmptok_skip_triggers();
+        if(ltokptr[0] == ';')
+        {
+            while(ltokptr[0] != '\0')
+            {
+                ltokptr++;
+            }
+            return;
+        }
+
+        break;
+    }
 }
 
 const char *cmptok(const char *token)
 {
-    // If token is not null set ltokptr to the value of token
+    /* null pointer check */
     if(token != NULL)
     {
-        // Set ltokptr to token
+        /* if token is passed then this is the beginning of something we are meant to parse */
         ltokptr = token;
     }
-    else if(ltokptr == NULL && ltokptr[0] == '\0')
+    else if(ltokptr == NULL || ltokptr[0] == '\0')
     {
-        // NOTE: Return NULL because a nullified or nullterminated ltokptr is useless
+        /* if ltokptr is nullified this or nullterminated then we shall not continue, there is nothing to tokenize */
         return NULL;
     }
 
-    // Nullify otoken
-    memset(otoken, 0, 255);
+    /* skip the junk in front of us */
+    cmptok_skip_triggers();
 
-    // Copy token for token
-    unsigned char a = 0;
+    /* nullify otoken */
+    memset(otoken, 0, 512);
+
+    /* perform copy */
+    unsigned short a = 0;
     unsigned char token_mode = CMPTOK_TOKEN_MODE_NONE;
-    while(a < 255)
+    while(a < 512)
     {
-        // Check if its a space or a delimeter
-        if((ltokptr[0] == ' ' || ltokptr[0] == ',' || ltokptr[0] == '\t') &&
-           token_mode == CMPTOK_TOKEN_MODE_NONE)
+        /* processing string */
+        switch(token_mode)
         {
-            cmptok_skip_triggers();
-            break;
+            case CMPTOK_TOKEN_MODE_NONE:
+                switch(ltokptr[0])
+                {
+                    /* handling what shall be skipped and not tokenized */
+                    case ';':
+                    case ' ':
+                    case ',':
+                    case '\t':
+                        cmptok_skip_triggers();
+                        goto break_out;
+                    
+                    /* handling string beginnings */
+                    case '"':
+                        token_mode = CMPTOK_TOKEN_MODE_STRING;
+                        break;
+                    
+                    /* handling character beginnings */
+                    case '\'':
+                        token_mode = CMPTOK_TOKEN_MODE_CHAR;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case CMPTOK_TOKEN_MODE_STRING:
+                switch(ltokptr[0])
+                {
+                    /* handling string ends */
+                    case '"':
+                        if(a > 0 && otoken[a-1] == '\\')
+                        {
+                            /* escaped quote, stay in string mode */
+                            break;
+                        }
+
+                        token_mode = CMPTOK_TOKEN_MODE_NONE;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case CMPTOK_TOKEN_MODE_CHAR:
+                switch(ltokptr[0])
+                {
+                    /* handling character ends */
+                    case '\'':
+                        if(a > 0 && otoken[a-1] == '\\')
+                        {
+                            /* escaped meter, stay in string mode */
+                            break;
+                        }
+                        
+                        token_mode = CMPTOK_TOKEN_MODE_NONE;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
         }
-        else if(ltokptr[0] == '"')
-        {
-            if(token_mode == CMPTOK_TOKEN_MODE_NONE)
-            {
-                token_mode = CMPTOK_TOKEN_MODE_DELIMETER;
-            }
-            else if(token_mode == CMPTOK_TOKEN_MODE_DELIMETER)
-            {
-                token_mode = CMPTOK_TOKEN_MODE_NONE;
-            }
-        }
-        else if(ltokptr[0] == '\'')
-        {
-            if(token_mode == CMPTOK_TOKEN_MODE_NONE)
-            {
-                token_mode = CMPTOK_TOKEN_MODE_METER;
-            }
-            else if(token_mode == CMPTOK_TOKEN_MODE_METER)
-            {
-                token_mode = CMPTOK_TOKEN_MODE_NONE;
-            }
-        }
+
+        goto skip_break_out;
+
+break_out:
+        break;
+skip_break_out:
 
         otoken[a] = ltokptr[0];
 
-        // Check if ltokptr is nullterminated rn
+        /* check for nulltermination in ltokptr */
         if(ltokptr[0] == '\0')
         {
             break;
         }
 
-        // Incrementation
+        /* incrementing */
         a++;
         ltokptr++;
     }

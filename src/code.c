@@ -121,31 +121,7 @@ void code_remove_comments(compiler_invocation_t *ci)
     size_t i = 0;
     while (ci->code[i] != '\0')
     {
-        if (ci->code[i] == ';')
-        {
-            size_t s = i;
-            while (s > 0 && ci->code[s - 1] == ' ')
-            {
-                s--;
-            }
-            if (s == 0 || ci->code[s - 1] == '\n')
-            {
-                i = s;
-            }
-
-            size_t e = i;
-            while (ci->code[e] != '\n' && ci->code[e] != '\0')
-            {
-                e++;
-            }
-
-            memmove(&ci->code[i], &ci->code[e], strlen(&ci->code[e]) + 1);
-            if (ci->code[i] == '\0')
-            {
-                break;
-            }
-        }
-        else if (ci->code[i] == '/' && ci->code[i + 1] == '*')
+        if (ci->code[i] == '/' && ci->code[i + 1] == '*')
         {
             size_t comment_start = i;  // Save BEFORE modifying i
 
@@ -248,7 +224,7 @@ void code_tokengen(compiler_invocation_t *ci)
     /* Gathering their subtokens */
     for(unsigned long i = 0; i < ci->token_cnt; i++)
     {
-        // Get amount of sub tokens
+        /* calculating amount of subtokens */
         ci->token[i].subtoken_cnt = 0;
         const char *token = cmptok(ci->token[i].token);
         while(token != NULL)
@@ -257,16 +233,15 @@ void code_tokengen(compiler_invocation_t *ci)
             token = cmptok(NULL);
         }
 
-        // Allocate subtoken array
+        /* allocating memory for array of subtokens */
         ci->token[i].subtoken = calloc(sizeof(char*), ci->token[i].subtoken_cnt);
 
-        // Get the actual subtokens
+        /* copy subtokens */
         ci->token[i].subtoken_cnt = 0;
         token = cmptok(ci->token[i].token);
         while(token != NULL)
         {
-            ci->token[i].subtoken[ci->token[i].subtoken_cnt] = strdup(token);
-            ci->token[i].subtoken_cnt++;
+            ci->token[i].subtoken[ci->token[i].subtoken_cnt++] = strdup(token);
             token = cmptok(NULL);
         }
     }

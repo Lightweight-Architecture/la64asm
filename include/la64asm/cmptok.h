@@ -26,8 +26,8 @@
 #define COMPILER_CMPTOK_H
 
 #define CMPTOK_TOKEN_MODE_NONE          0b00
-#define CMPTOK_TOKEN_MODE_DELIMETER     0b01
-#define CMPTOK_TOKEN_MODE_METER         0b10
+#define CMPTOK_TOKEN_MODE_STRING        0b01
+#define CMPTOK_TOKEN_MODE_CHAR          0b10
 
 const char *cmptok(const char *token);
 
