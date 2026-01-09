@@ -118,33 +118,34 @@ void get_code_buffer(const char **files,
 
 void code_tokengen(compiler_invocation_t *ci)
 {
-    /* Gathering token count */
+    /* gather information about the code */
     size_t token_cnt = 0;
     size_t code_size = strlen(ci->code);
 
+    /* iterating through code and look for newline characters as indicator for a newline */
     for(size_t i = 0; i < code_size; i++)
     {
-        // Look for '\n'
         if(ci->code[i] == '\n')
         {
             token_cnt += 1;
         }
     }
 
-    /* Gathering base tokens */
+    /* allocate array of lines */
     ci->token = calloc(token_cnt, sizeof(compiler_token_t));
     ci->token_cnt = token_cnt;
 
+    /* reset token count and then begin to copy */
     token_cnt = 0;
-    size_t last_line_offset = 0;
+    size_t start_off = 0;   /* this offset is used to determine the lenght of each line */
     for(size_t i = 0; i < code_size; i++)
     {
-        // Look for '\n'
+        /* checking for new line character*/
         if(ci->code[i] == '\n')
         {
-            size_t start_off = last_line_offset;
             size_t end_off = i;
 
+            /* iteratting till hitting whitespace */
             for(; start_off < end_off; start_off++)
             {
                 if(ci->code[start_off] != ' ')
@@ -153,6 +154,7 @@ void code_tokengen(compiler_invocation_t *ci)
                 }
             }
 
+            /* iteratting till hitting whitespace or a new line character */
             for(; end_off > start_off; end_off--)
             {
                 if(ci->code[end_off] != ' ' && ci->code[end_off] != '\n')
@@ -162,23 +164,31 @@ void code_tokengen(compiler_invocation_t *ci)
                 }
             }
 
+            /* calculating the total lenght of the string */
             size_t len = end_off - start_off;
+
+            /* allocating memory for the token and nullterminator  */
             ci->token[token_cnt].token = malloc(len + 1);
+
+            /* copying line */
             memcpy(ci->token[token_cnt].token, &(ci->code[start_off]), len);
+
+            /* nullterminating */
             ci->token[token_cnt].token[len] = '\0';
-            last_line_offset = i + 1;
+
+            start_off = i + 1;
             token_cnt++;
         }
     }
 
-    /* Gathering their subtokens */
+    /* getting subtokens of each token */
     for(unsigned long i = 0; i < ci->token_cnt; i++)
     {
-        /* calculating amount of subtokens */
-        ci->token[i].subtoken_cnt = 0;
+        /* using cmptok in first pass to get token count */
         const char *token = cmptok(ci->token[i].token);
         while(token != NULL)
         {
+            /* until this is not null i will not move anywhere else than my safe space which is this while loop :3*/
             ci->token[i].subtoken_cnt++;
             token = cmptok(NULL);
         }
@@ -188,6 +198,8 @@ void code_tokengen(compiler_invocation_t *ci)
 
         /* copy subtokens */
         ci->token[i].subtoken_cnt = 0;
+
+        /* again doing the same dance, over and over and over again, is this a carousell or why am I getting ill rn */
         token = cmptok(ci->token[i].token);
         while(token != NULL)
         {
@@ -196,7 +208,7 @@ void code_tokengen(compiler_invocation_t *ci)
         }
     }
 
-    /* Evaluate Type */
+    /* token type evaluation */
     unsigned char section_mode = 0b0;
     for(unsigned long i = 0; i < ci->token_cnt; i++)
     {
@@ -206,9 +218,10 @@ void code_tokengen(compiler_invocation_t *ci)
             continue;
         }
 
+        /* lets go */
         if(ci->token[i].subtoken_cnt < 2)
         {
-            // Label Check
+            /* getting size of subtoken */
             size_t size = strlen(ci->token[i].subtoken[0]);
 
             /* anti wrap around check */
@@ -217,12 +230,12 @@ void code_tokengen(compiler_invocation_t *ci)
                 continue;
             }
 
-            // Check if the last character of the first subtoken is a ':'
+            /* checking if last character of token is a ':', because that means that its a label */
             if(ci->token[i].subtoken[0][size - 1] == ':')
             {
                 section_mode = 0b0;
 
-                // Its a scoped label if its first character is a dot
+                /* checking what type of label it is */
                 if(ci->token[i].subtoken[0][0] == '_')
                 {
                     ci->token[i].type = COMPILER_TOKEN_TYPE_LABEL;
@@ -242,6 +255,7 @@ void code_tokengen(compiler_invocation_t *ci)
         }
         else if(ci->token[i].subtoken_cnt < 3)
         {
+            /* checking if its a section */
             if(strcmp(ci->token[i].subtoken[0], "section") == 0)
             {
                 section_mode = 0b1;
@@ -249,31 +263,23 @@ void code_tokengen(compiler_invocation_t *ci)
                 continue;
             }
         }
-
-        if(strcmp(ci->token[i].subtoken[0], "%macro%") == 0)
-        {
-            ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_MACRO;
-            continue;
-        }
-        else if(strcmp(ci->token[i].subtoken[0], "%macroend%") == 0)
-        {
-            ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_MACROEND;
-            continue;
-        }
         else if(strcmp(ci->token[i].subtoken[0], "%define%") == 0)
         {
+            section_mode = 0b0;
+
             ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_MACRODEF;
             continue;
         }
-        
+
+        /* last if else dance */
         if(section_mode)
         {
-            // Its part of a section
+            /* its part of a section definition */
             ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_DATA;
         }
         else
         {
-            // Its probably ASM
+            /* its probably assembly code */
             ci->token[i].type = COMPILER_TOKEN_TYPE_ASM;
         }
     }
@@ -281,12 +287,12 @@ void code_tokengen(compiler_invocation_t *ci)
 
 void code_binary_spitout(compiler_invocation_t *ci)
 {
-    // Open a.out
-    int fd = open("a.out", O_RDWR | O_CREAT | O_TRUNC, 0777);
+    /* open output file */
+    int fd = open("a.out", O_RDWR | O_CREAT | O_TRUNC, 0666);
 
-    // Now write
+    /* writing output file */
     write(fd, ci->image, ci->image_addr);
 
-    // Close file descriptor
+    /* closing file descriptor */
     close(fd);
 }
