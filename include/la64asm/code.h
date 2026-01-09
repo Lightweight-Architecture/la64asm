@@ -29,7 +29,6 @@
 #include <la64asm/type.h>
 
 void get_code_buffer(const char **files, int file_cnt, compiler_invocation_t *ci);
-void code_remove_comments(compiler_invocation_t *ci);
 void code_tokengen(compiler_invocation_t *ci);
 void code_binary_spitout(compiler_invocation_t *ci);
 

@@ -74,13 +74,6 @@ void compile_files(const char **files,
     /* gathering code */
     get_code_buffer(files, file_cnt, ci);
 
-    /*
-     * formatting code by removing all the useless
-     * and ignored stuff and extracting solely usable
-     * information to process
-     */
-    code_remove_comments(ci);
-
     /* generating tokens,labels,sections out of the code */
     code_tokengen(ci);
 

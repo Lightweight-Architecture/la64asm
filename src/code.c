@@ -116,56 +116,6 @@ void get_code_buffer(const char **files,
     ci->code = buf;
 }
 
-void code_remove_comments(compiler_invocation_t *ci)
-{
-    size_t i = 0;
-    while (ci->code[i] != '\0')
-    {
-        if (ci->code[i] == '/' && ci->code[i + 1] == '*')
-        {
-            size_t comment_start = i;  // Save BEFORE modifying i
-
-            size_t s = i;
-            while (s > 0 && ci->code[s - 1] == ' ')
-            {
-                s--;
-            }
-            if (s == 0 || ci->code[s - 1] == '\n')
-            {
-                i = s;
-            }
-
-            // Find closing */
-            size_t e = comment_start + 2;
-            while (ci->code[e] != '\0')
-            {
-                if (ci->code[e] == '*' && ci->code[e + 1] == '/')
-                {
-                    e += 2;
-                    break;
-                }
-                e++;
-            }
-
-            // Skip trailing whitespace until newline
-            while (ci->code[e] == ' ')
-            {
-                e++;
-            }
-
-            memmove(&ci->code[i], &ci->code[e], strlen(&ci->code[e]) + 1);
-            if (ci->code[i] == '\0')
-            {
-                break;
-            }
-        }
-        else
-        {
-            i++;
-        }
-    }
-}
-
 void code_tokengen(compiler_invocation_t *ci)
 {
     /* Gathering token count */
