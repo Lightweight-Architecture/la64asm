@@ -31,7 +31,7 @@
 #include <la64asm/label.h>
 #include <stdbool.h>
 
-bool la64_compiler_lowcodeline(compiler_invocation_t *ci, compiler_token_t *ct);
+bool la64_compiler_lowcodeline(compiler_invocation_t *ci, compiler_line_t *cl);
 void la64_compiler_lowlevel(compiler_invocation_t *ci);
 
 #endif /* LA16_COMPILER_H */

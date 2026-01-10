@@ -30,6 +30,7 @@ add_executable(la64asm
     src/register.c
     src/section.c
     src/macro.c
+    src/diag.c
 )
 
 target_include_directories(la64asm

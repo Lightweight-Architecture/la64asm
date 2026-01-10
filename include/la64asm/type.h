@@ -30,24 +30,39 @@
 
 #include <lautils/bitwalker.h>
 
-#define COMPILER_TOKEN_TYPE_NONE             0b0000
-#define COMPILER_TOKEN_TYPE_ASM              0b0001
-#define COMPILER_TOKEN_TYPE_LABEL            0b0010
-#define COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE   0b0011
-#define COMPILER_TOKEN_TYPE_SECTION          0b0100
-#define COMPILER_TOKEN_TYPE_SECTION_DATA     0b0101
-#define COMPILER_TOKEN_TYPE_SECTION_MACRO    0b0110
-#define COMPILER_TOKEN_TYPE_SECTION_MACROEND 0b0111
-#define COMPILER_TOKEN_TYPE_SECTION_MACRODEF 0b1000
+#define COMPILER_LINE_TYPE_NONE                 0b0000
+#define COMPILER_LINE_TYPE_ASM                  0b0001
+#define COMPILER_LINE_TYPE_LABEL                0b0010
+#define COMPILER_LINE_TYPE_LABEL_IN_SCOPE       0b0011
+#define COMPILER_LINE_TYPE_SECTION              0b0100
+#define COMPILER_LINE_TYPE_SECTION_DATA         0b0101
+#define COMPILER_LINE_TYPE_MACRODEF             0b0110
 
-typedef unsigned char compiler_token_type_t;
+typedef unsigned char compiler_line_type_t;
+typedef struct compiler_invocation compiler_invocation_t;
+typedef struct compiler_line compiler_line_t;
 
 typedef struct {
-    compiler_token_type_t type;             /* type of token */
-    char *token;                            /* token it self */
-    char **subtoken;                        /* subtokens */
-    uint64_t subtoken_cnt;                  /* count of subtokens */
+    char *str;
+    size_t column_num;                      /* start offset of column */
+    compiler_line_t *cl;                    /* pointer back to compiler line */
 } compiler_token_t;
+
+typedef struct compiler_line {
+    char *str;
+    compiler_line_type_t type;              /* type of line */
+    compiler_token_t *token;                /* subtokens */
+    uint64_t token_cnt;                     /* count of subtokens */
+    size_t line_num;                        /* line number in file */   
+    size_t file_idx;                        /* index of file in compiler invocation */
+    compiler_invocation_t *ci;              /* pointer back to compiler invocation */
+} compiler_line_t;
+
+typedef struct {
+    char *path;
+    char *code;
+    size_t len;
+} compiler_file_t;
 
 typedef struct {
     char *name;                             /* name of resolved label */
@@ -57,12 +72,14 @@ typedef struct {
 typedef struct {
     char *name;                             /* unknown label looking for address */
     bitwalker_t bw;                         /* bitwalker state of when it was looked for (always 64bit skipped) */
+    compiler_line_t *cllink;                /* link to the originator of the entry */
 } reloc_table_entry;
 
-typedef struct {
-    char *code;                             /* raw code */
-    compiler_token_t *token;                /* token array */
-    uint64_t token_cnt;                     /* count of tokens */
+typedef struct compiler_invocation {
+    compiler_file_t *file;                  /* code files */
+    size_t file_cnt;                        /* count of files */
+    compiler_line_t *line;                  /* token array */
+    uint64_t line_cnt;                      /* count of tokens */
     char *label_scope;                      /* current resolved label scope */
     compiler_label_t *label;                /* label array */
     uint64_t label_cnt;                     /* count of labels */

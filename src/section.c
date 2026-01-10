@@ -34,52 +34,52 @@
 void code_token_section(compiler_invocation_t *ci)
 {
     /* iterating for section token type */
-    for(unsigned long i = 0; i < ci->token_cnt; i++)
+    for(unsigned long i = 0; i < ci->line_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION)
+        if(ci->line[i].type == COMPILER_LINE_TYPE_SECTION)
         {
-            if(strcmp(ci->token[i].subtoken[1], ".data") == 0)
+            if(strcmp(ci->line[i].token[1].str, ".data") == 0)
             {
                 /* iterating till section data is over */
                 i++;
-                for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
+                for(; i < ci->line_cnt && ci->line[i].type == COMPILER_LINE_TYPE_SECTION_DATA; i++)
                 {
                     /* checking count */
-                    if(ci->token[i].subtoken_cnt < 3)
+                    if(ci->line[i].token_cnt < 3)
                     {
                         printf("[!] not enough tokens for section data in .data\n");
                         exit(1);
                     }
 
                     /* inserting address as label */
-                    ci->label[ci->label_cnt].name = strdup(ci->token[i].subtoken[0]);
+                    ci->label[ci->label_cnt].name = strdup(ci->line[i].token[0].str);
                     ci->label[ci->label_cnt++].addr = ci->image_addr;
 
                     /* checking if its known */
                     int dbs = 8;
-                    if(strcmp(ci->token[i].subtoken[1], "dw") == 0)
+                    if(strcmp(ci->line[i].token[1].str, "dw") == 0)
                     {
                         dbs = 16;
                     }
-                    else if(strcmp(ci->token[i].subtoken[1], "dd") == 0)
+                    else if(strcmp(ci->line[i].token[1].str, "dd") == 0)
                     {
                         dbs = 32;
                     }
-                    else if(strcmp(ci->token[i].subtoken[1], "dq") == 0)
+                    else if(strcmp(ci->line[i].token[1].str, "dq") == 0)
                     {
                         dbs = 64;
                     }
-                    else if(strcmp(ci->token[i].subtoken[1], "db") != 0)
+                    else if(strcmp(ci->line[i].token[1].str, "db") != 0)
                     {
-                        printf("[!] %s is not a valid data type for .data sections\n", ci->token[i].subtoken[1]);
+                        printf("[!] %s is not a valid data type for .data sections\n", ci->line[i].token[1].str);
                         exit(1);
                     }
 
                     /* iterating through the chain */
-                    for(unsigned long a = 2; a < ci->token[i].subtoken_cnt; a++)
+                    for(unsigned long a = 2; a < ci->line[i].token_cnt; a++)
                     {
                         /* using low level type parser */
-                        parser_return_t pr = parse_value_from_string(ci->token[i].subtoken[a]);
+                        parser_return_t pr = parse_value_from_string(ci->line[i].token[a].str);
 
                         /* checking type */
                         if(pr.type == laParserValueTypeBuffer)
@@ -105,25 +105,25 @@ void code_token_section(compiler_invocation_t *ci)
                 }
                 i--;
             }
-            else if(strcmp(ci->token[i].subtoken[1], ".bss") == 0)
+            else if(strcmp(ci->line[i].token[1].str, ".bss") == 0)
             {
                 /* finding variable type */
                 i++;
-                for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
+                for(; i < ci->line_cnt && ci->line[i].type == COMPILER_LINE_TYPE_SECTION_DATA; i++)
                 {
                     /* checking count */
-                    if(ci->token[i].subtoken_cnt < 2)
+                    if(ci->line[i].token_cnt < 2)
                     {
                         printf("[!] not enough tokens for section data in .bss\n");
                         exit(1);
                     }
 
                     /* insert label into label array */
-                    ci->label[ci->label_cnt].name = strdup(ci->token[i].subtoken[0]);
+                    ci->label[ci->label_cnt].name = strdup(ci->line[i].token[0].str);
                     ci->label[ci->label_cnt++].addr = ci->image_addr;
 
                     /* offset image address by value */
-                    parser_return_t pr = parse_value_from_string(ci->token[i].subtoken[1]);
+                    parser_return_t pr = parse_value_from_string(ci->line[i].token[1].str);
 
                     /* checking if the type makes sense */
 

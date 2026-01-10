@@ -28,17 +28,18 @@
 #include <string.h>
 #include <ctype.h>
 #include <la64asm/label.h>
+#include <la64asm/diag.h>
 #include <unistd.h>
 
 void code_token_label(compiler_invocation_t *ci)
 {
     /* counting labels caught at token parsing */
     ci->label_cnt = 1;
-    for(int i = 0; i < ci->token_cnt; i++)
+    for(int i = 0; i < ci->line_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL ||
-           ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE ||
-           ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA)
+        if(ci->line[i].type == COMPILER_LINE_TYPE_LABEL ||
+           ci->line[i].type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE ||
+           ci->line[i].type == COMPILER_LINE_TYPE_SECTION_DATA)
         {
             (ci->label_cnt)++;
         }
@@ -52,10 +53,12 @@ void code_token_label(compiler_invocation_t *ci)
 }
 
 void code_token_label_append(compiler_invocation_t *ci,
-                             compiler_token_t *ct)
+                             compiler_line_t *cl)
 {
     /* null pointer check */
-    if(ci == NULL || ci->label == NULL || ct == NULL)
+    if(ci == NULL ||
+       ci->label == NULL ||
+       cl == NULL)
     {
         return;
     }
@@ -64,18 +67,17 @@ void code_token_label_append(compiler_invocation_t *ci,
     ci->label[ci->label_cnt].addr = ci->image_addr;
 
     /* copying label name */
-    size_t size = strlen(ct->token);
-    char *name = strdup(ct->token);
+    size_t size = strlen(cl->str);
+    char *name = strdup(cl->str);
     name[size - 1] = '\0';
 
     /* checking if its in scope */
-    if(ct->type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE)
+    if(cl->type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE)
     {
         /* null poiner checking scope */
         if(ci->label_scope == NULL)
         {
-            printf("[!] no scope for label in scope\n");
-            exit(1);
+            diag_error(&(cl->token[0]), "defining a local label out of any global label is illegal \"%s\"\n", name);
         }
 
         /* adjust size */
@@ -85,7 +87,7 @@ void code_token_label_append(compiler_invocation_t *ci,
         name = realloc(name, (size) + 1);
 
         /* recopy */
-        sprintf(name, "%s%s", ci->label_scope, ct->token);
+        sprintf(name, "%s%s", ci->label_scope, cl->str);
         name[size - 1] = '\0';
     }
     else
@@ -97,7 +99,7 @@ void code_token_label_append(compiler_invocation_t *ci,
     /* checking for duplicated labels */
     if(label_lookup(ci, name) != COMPILER_LABEL_NOT_FOUND)
     {
-        printf("[!] duplicate label: %s\n", name);
+        diag_error(&(cl->token[0]), "duplicated label \"%s\"\n", name);
         exit(1);
     }
 

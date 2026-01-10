@@ -30,6 +30,7 @@
 #include <la64asm/compiler.h>
 #include <la64asm/section.h>
 #include <la64asm/macro.h>
+#include <la64asm/diag.h>
 
 compiler_invocation_t *compiler_invocation_alloc(void)
 {
@@ -40,29 +41,7 @@ compiler_invocation_t *compiler_invocation_alloc(void)
 
 void compiler_invocation_dealloc(compiler_invocation_t *ci)
 {
-    /* freeing the code it self */
-    free(ci->code);
-
-    /* freeing the token structures */
-    for(unsigned long i = 0; i < ci->token_cnt; i++)
-    {
-        free(ci->token[i].token);
-        for(unsigned long a = 0; a < ci->token[i].subtoken_cnt; i++)
-        {
-            free(ci->token[i].subtoken[a]);
-        }
-        free(ci->token[i].subtoken);
-    }
-    free(ci->token);
-
-    /* freeing labels */
-    for(unsigned long i = 0; i < ci->label_cnt; i++)
-    {
-        free(ci->label[i].name);
-    }
-    free(ci->label);
-
-    free(ci);
+    /* todo: this must be redone from scratch */
 }
 
 void compile_files(const char **files,

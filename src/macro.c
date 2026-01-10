@@ -36,9 +36,9 @@ void code_token_macro(compiler_invocation_t *ci)
 {
     /* count the amount of macros */
     uint64_t c = 0;
-    for(uint64_t i = 0; i < ci->token_cnt; i++)
+    for(uint64_t i = 0; i < ci->line_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_MACRODEF)
+        if(ci->line[i].type == COMPILER_LINE_TYPE_MACRODEF)
         {
             c++;
         }
@@ -49,29 +49,29 @@ void code_token_macro(compiler_invocation_t *ci)
 
     /* adding stuff */
     c = 0;
-    for(uint64_t i = 0; i < ci->token_cnt; i++)
+    for(uint64_t i = 0; i < ci->line_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_MACRODEF)
+        if(ci->line[i].type == COMPILER_LINE_TYPE_MACRODEF)
         {
-            cm[c].name = ci->token[i].subtoken[1];
-            cm[c].value = ci->token[i].subtoken[2];
+            cm[c].name = ci->line[i].token[1].str;
+            cm[c].value = ci->line[i].token[2].str;
             c++;
         }
     }
 
     /* now replacing */
-    for(uint64_t i = 0; i < ci->token_cnt; i++)
+    for(uint64_t i = 0; i < ci->line_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_ASM)
+        if(ci->line[i].type == COMPILER_LINE_TYPE_ASM)
         {
-            for(uint64_t a = 0; a < ci->token[i].subtoken_cnt; a++)
+            for(uint64_t a = 0; a < ci->line[i].token_cnt; a++)
             {
                 for(uint64_t b = 0; b < c; b++)
                 {
-                    if(strcmp(ci->token[i].subtoken[a], cm[b].name) == 0)
+                    if(strcmp(ci->line[i].token[a].str, cm[b].name) == 0)
                     {
-                        free(ci->token[i].subtoken[a]);
-                        ci->token[i].subtoken[a] = strdup(cm[b].value);
+                        free(ci->line[i].token[a].str);
+                        ci->line[i].token[a].str = strdup(cm[b].value);
                     }
                 }
             }

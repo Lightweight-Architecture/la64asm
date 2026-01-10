@@ -23,6 +23,7 @@
  */
 
 #include <la64asm/compiler.h>
+#include <la64asm/diag.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,14 +35,14 @@
 #include <lautils/bitwalker.h>
 
 bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
-                               compiler_token_t *ct)
+                               compiler_line_t *cl)
 {
     /* parameter count check */
-    if(ct->subtoken_cnt <= 0)
+    if(cl->token_cnt <= 0)
     {
         printf("[!] insufficient parameters\n");
     }
-    else if(ct->subtoken_cnt > 32)
+    else if(cl->token_cnt > 32)
     {
         printf("[!] too many parameters (32 maximum)\n");
     }
@@ -51,11 +52,11 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
     bitwalker_init(&bw, &(ci->image[ci->image_addr]), 512, BW_LITTLE_ENDIAN);
 
     /* getting opcode entry if it exists */
-    opcode_entry_t *opce = opcode_from_string(ct->subtoken[0]);
+    opcode_entry_t *opce = opcode_from_string(cl->token[0].str);
 
     if(opce == NULL)
     {
-        printf("[!] illegal opcode: %s\n", ct->subtoken[0]);
+        printf("[!] illegal opcode: %s\n", cl->token[0].str);
         exit(1);
     }
     else
@@ -75,10 +76,10 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
     }
 
     /* parse parameters */
-    for(uint64_t i = 1; i < ct->subtoken_cnt; i++)
+    for(uint64_t i = 1; i < cl->token_cnt; i++)
     {
         /* parsing value */
-        parser_return_t pr = parse_value_from_string(ct->subtoken[i]);
+        parser_return_t pr = parse_value_from_string(cl->token[i].str);
 
         /* checking for intermediates */
         if(pr.type != laParserValueTypeString)
@@ -109,7 +110,7 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
         }
 
         /* checking for register */
-        register_entry_t *reg = register_from_string(ct->subtoken[i]);
+        register_entry_t *reg = register_from_string(cl->token[i].str);
 
         if(reg != NULL)
         {
@@ -126,17 +127,18 @@ bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
         char *label = NULL;
 
         /* checking for local label */
-        if(ct->subtoken[i][0] == '.')
+        if(cl->token[i].str[0] == '.')
         {
-            asprintf(&label, "%s%s", ci->label_scope, ct->subtoken[i]);
+            asprintf(&label, "%s%s", ci->label_scope, cl->token[i].str);
         }
         else
         {
-            label = strdup(ct->subtoken[i]);
+            label = strdup(cl->token[i].str);
         }
         
         ci->rtlb[ci->rtlb_cnt].name = label;
-        ci->rtlb[ci->rtlb_cnt++].bw = bw;
+        ci->rtlb[ci->rtlb_cnt].bw = bw;
+        ci->rtlb[ci->rtlb_cnt++].cllink = cl;
 
         /* skip the 64bit for now */
         bitwalker_skip(&bw, 64);
@@ -154,18 +156,18 @@ skip_parse:
 void la64_compiler_lowlevel(compiler_invocation_t *ci)
 {
     /* iterate through each token */
-    for(uint64_t i = 0; i < ci->token_cnt; i++)
+    for(uint64_t i = 0; i < ci->line_cnt; i++)
     {
         /* checking for label */
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL ||
-           ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_IN_SCOPE)
+        if(ci->line[i].type == COMPILER_LINE_TYPE_LABEL ||
+           ci->line[i].type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE)
         {
             /* insert into labels */
-            code_token_label_append(ci, &(ci->token[i]));
+            code_token_label_append(ci, &(ci->line[i]));
         }
-        else if(ci->token[i].type == COMPILER_TOKEN_TYPE_ASM)
+        else if(ci->line[i].type == COMPILER_LINE_TYPE_ASM)
         {
-            la64_compiler_lowcodeline(ci, &(ci->token[i]));
+            la64_compiler_lowcodeline(ci, &(ci->line[i]));
         }
     }
     
@@ -182,8 +184,7 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
         /* sanity checking address */
         if(addr == COMPILER_LABEL_NOT_FOUND)
         {
-            printf("[!] lookup: %s not found\n", ci->rtlb[i].name);
-            exit(1);
+            diag_error(&(ci->rtlb[i].cllink->token[0]), "label \"%s\" not found\n", ci->rtlb[i].name);
         }
 
         /* using da bitwalker to fixup address */

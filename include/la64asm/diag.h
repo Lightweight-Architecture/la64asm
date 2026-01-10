@@ -22,17 +22,13 @@
  * SOFTWARE.
  */
 
-#ifndef COMPILER_LABEL_H
-#define COMPILER_LABEL_H
-
-#define COMPILER_LABEL_NOT_FOUND 0x0
+#ifndef LA64ASM_DIAG_H
+#define LA64ASM_DIAG_H
 
 #include <la64asm/type.h>
 
-void code_token_label(compiler_invocation_t *ci);
-void code_token_label_append(compiler_invocation_t *ci, compiler_line_t *cl);
-void code_token_label_insert_start(compiler_invocation_t *ci);
+void diag_note(compiler_token_t *ct, char *msg, ...);
+void diag_warn(compiler_token_t *ct, char *msg, ...);
+void diag_error(compiler_token_t *ct, char *msg, ...);
 
-uint64_t label_lookup(compiler_invocation_t *ci, const char *name);
-
-#endif /* COMPILER_LABEL_H */
+#endif /* LA64ASM_DIAG_H */
