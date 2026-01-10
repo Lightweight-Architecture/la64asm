@@ -27,8 +27,8 @@
 
 #include <la64asm/type.h>
 
-void diag_note(compiler_token_t *ct, char *msg, ...);
-void diag_warn(compiler_token_t *ct, char *msg, ...);
-void diag_error(compiler_token_t *ct, char *msg, ...);
+void diag_note(compiler_token_t *ct, const char *msg, ...);
+void diag_warn(compiler_token_t *ct, const char *msg, ...);
+void diag_error(compiler_token_t *ct, const char *msg, ...);
 
 #endif /* LA64ASM_DIAG_H */

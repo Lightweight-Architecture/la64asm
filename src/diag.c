@@ -187,12 +187,44 @@ static inline int handle_format(const char *fmt,
     return count;
 }
 
-void diag_note(compiler_token_t *ct, char *msg, ...)
+static inline void diag_helper(const char *msg,
+                               va_list *args)
 {
-    printf("%s:%zu:%zu: \033[35mnote:\033[0m ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
-
     /* dont forget to flush the toilet otherwise things get stinky */
     fflush(stdout);
+
+    /* starting to parse arguments */
+    int i = 0;
+    int count = 0;
+
+    /* handling format */
+    while(msg[i])
+    {
+        if(msg[i] == '%' && msg[i + 1])
+        {
+            i++;
+            count += handle_format(msg, &i, args);
+        }
+        else
+        {
+            count += putchar_c(msg[i]);
+        }
+        i++;
+    }
+}
+
+void diag_note(compiler_token_t *ct,
+               const char *msg,
+               ...)
+{
+    /* handling compiler token if passed */
+    if(ct != NULL)
+    {
+        printf("%s:%zu:%zu: ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
+    }
+
+    /* initial debug print */
+    printf("\033[35mnote:\033[0m ");
 
     /* starting to parse arguments */
     va_list args;
@@ -202,31 +234,25 @@ void diag_note(compiler_token_t *ct, char *msg, ...)
     /* starting to parse */
     va_start(args, msg);
 
-    /* handling format */
-    while(msg[i])
-    {
-        if(msg[i] == '%' && msg[i + 1])
-        {
-            i++;
-            count += handle_format(msg, &i, &args);
-        }
-        else
-        {
-            count += putchar_c(msg[i]);
-        }
-        i++;
-    }
+    /* invoking helper */
+    diag_helper(msg, &args);
 
-    /* were done */
+    /* ending the parse */
     va_end(args);
 }
 
-void diag_warn(compiler_token_t *ct, char *msg, ...)
+void diag_warn(compiler_token_t *ct,
+               const char *msg,
+               ...)
 {
-    printf("%s:%zu:%zu: \033[33mwarning:\033[0m ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
+    /* handling compiler token if passed */
+    if(ct != NULL)
+    {
+        printf("%s:%zu:%zu: ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
+    }
 
-    /* dont forget to flush the toilet otherwise things get stinky */
-    fflush(stdout);
+    /* initial debug print */
+    printf("\033[33mwarning:\033[0m ");
 
     /* starting to parse arguments */
     va_list args;
@@ -236,31 +262,25 @@ void diag_warn(compiler_token_t *ct, char *msg, ...)
     /* starting to parse */
     va_start(args, msg);
 
-    /* handling format */
-    while(msg[i])
-    {
-        if(msg[i] == '%' && msg[i + 1])
-        {
-            i++;
-            count += handle_format(msg, &i, &args);
-        }
-        else
-        {
-            count += putchar_c(msg[i]);
-        }
-        i++;
-    }
+    /* invoking helper */
+    diag_helper(msg, &args);
 
-    /* were done */
+    /* ending the parse */
     va_end(args);
 }
 
-void diag_error(compiler_token_t *ct, char *msg, ...)
+void diag_error(compiler_token_t *ct,
+                const char *msg,
+                ...)
 {
-    printf("%s:%zu:%zu: \033[31merror:\033[0m ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
-    
-    /* dont forget to flush the toilet otherwise things get stinky */
-    fflush(stdout);
+    /* handling compiler token if passed */
+    if(ct != NULL)
+    {
+        printf("%s:%zu:%zu: ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
+    }
+
+    /* initial debug print */
+    printf("\033[31merror:\033[0m ");
 
     /* starting to parse arguments */
     va_list args;
@@ -270,23 +290,12 @@ void diag_error(compiler_token_t *ct, char *msg, ...)
     /* starting to parse */
     va_start(args, msg);
 
-    /* handling format */
-    while(msg[i])
-    {
-        if(msg[i] == '%' && msg[i + 1])
-        {
-            i++;
-            count += handle_format(msg, &i, &args);
-        }
-        else
-        {
-            count += putchar_c(msg[i]);
-        }
-        i++;
-    }
+    /* invoking helper */
+    diag_helper(msg, &args);
 
-    /* were done */
+    /* ending the parse */
     va_end(args);
 
+    /* a error is a no go */
     exit(1);
 }
