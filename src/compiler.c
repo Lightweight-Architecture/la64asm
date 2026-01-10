@@ -42,11 +42,11 @@ bool la64_compiler_lowcodeline(compiler_line_t *cl)
     /* parameter count check */
     if(cl->token_cnt <= 0)
     {
-        printf("[!] insufficient parameters\n");
+        diag_error(&(cl->token[0]), "insufficient operands\n");
     }
     else if(cl->token_cnt > 32)
     {
-        printf("[!] too many parameters (32 maximum)\n");
+        diag_error(&(cl->token[0]), "holy smokes, why soo many operands, maximum is 32 operands in 64bit lightweight architecture\n");
     }
 
     /* initilize bitwalker */
@@ -58,8 +58,7 @@ bool la64_compiler_lowcodeline(compiler_line_t *cl)
 
     if(opce == NULL)
     {
-        printf("[!] illegal opcode: %s\n", cl->token[0].str);
-        exit(1);
+        diag_error(&(cl->token[0]), "illegal opcode \"%s\"\n", cl->token[0].str);
     }
     else
     {
@@ -120,7 +119,7 @@ bool la64_compiler_lowcodeline(compiler_line_t *cl)
             bitwalker_write(&bw, reg->reg, 5);
             continue;
         }
-        
+
         /* set mode to 64bit lmfao */
         bitwalker_write(&bw, LA64_PARAMETER_CODING_IMM64, 3);
 
@@ -137,7 +136,7 @@ bool la64_compiler_lowcodeline(compiler_line_t *cl)
         {
             label = strdup(cl->token[i].str);
         }
-        
+
         ci->rtlb[ci->rtlb_cnt].name = label;
         ci->rtlb[ci->rtlb_cnt].bw = bw;
         ci->rtlb[ci->rtlb_cnt++].ctlink = &(cl->token[i]);
@@ -172,7 +171,7 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
             la64_compiler_lowcodeline(&(ci->line[i]));
         }
     }
-    
+
     /* append binary end label */
     ci->label[ci->label_cnt].addr = ci->image_addr;
     ci->label[ci->label_cnt++].name = strdup("__la64_exec_img_end");

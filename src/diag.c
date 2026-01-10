@@ -42,7 +42,7 @@ static inline int putstr_c(char *s)
     {
         s = "(null)";
     }
-    
+
     while(*s)
     {
         count += write(1, s++, 1);
@@ -131,7 +131,7 @@ static inline int handle_format(const char *fmt,
                                 va_list *args)
 {
     int count = 0;
- 
+
     /* clean handlinggg!! */
     switch(fmt[*i])
     {
