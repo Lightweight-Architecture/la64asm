@@ -137,7 +137,7 @@ void code_token_label_insert_start(compiler_invocation_t *ci)
 
     if(addr == COMPILER_LABEL_NOT_FOUND)
     {
-        exit(1);
+        diag_error(NULL, "\"_start\" label not found, cannot produce boot image\n");
     }
 
     /* writing start address into the start of the image */
