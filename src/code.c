@@ -162,9 +162,7 @@ void code_tokengen(compiler_invocation_t *ci)
     for(unsigned long i = 0; i < ci->line_cnt; i++)
     {
         /* using cmptok in first pass to get token count */
-        const char *token = cmptok(ci->line[i].str);
-
-        while(token != NULL)
+        for(const char *token = cmptok(ci->line[i].str); token != NULL;)
         {
             /* until this is not null i will not move anywhere else than my safe space which is this while loop :3*/
             ci->line[i].token_cnt++;
@@ -178,8 +176,7 @@ void code_tokengen(compiler_invocation_t *ci)
         ci->line[i].token_cnt = 0;
 
         /* again doing the same dance, over and over and over again, is this a carousell or why am I getting ill rn */
-        token = cmptok(ci->line[i].str);
-        while(token != NULL)
+        for(const char *token = cmptok(ci->line[i].str); token != NULL;)
         {
             ci->line[i].token[ci->line[i].token_cnt].str = strdup(token);
             ci->line[i].token[ci->line[i].token_cnt++].cl = &(ci->line[i]);
