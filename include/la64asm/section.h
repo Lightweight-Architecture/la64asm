@@ -27,13 +27,6 @@
 
 #include <la64asm/type.h>
 
-enum COMPILER_SECTION_TYPE
-{
-    COMPILER_SECTION_TYPE_DATA = 0b00000000,
-    COMPILER_SECTION_TYPE_BSS = 0b00000001,
-    COMPILER_SECTION_TYPE_TEXT = 0b00000010,
-};
-
 void code_token_section(compiler_invocation_t *ci);
 void code_remove_sections(compiler_invocation_t *ci);
 
