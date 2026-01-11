@@ -146,6 +146,4 @@ void code_token_section(compiler_invocation_t *ci)
             }
         }
     }
-
-    ci->image_text_start_addr = ci->image_addr;
 }

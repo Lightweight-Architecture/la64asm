@@ -88,7 +88,6 @@ typedef struct compiler_invocation {
     uint64_t rtlb_cnt;                      /* count of relocation table entries */
     uint8_t image[0xFFFFFF];                /* replace with better technique that is more incremental */
     uint64_t image_addr;                    /* current address */
-    uint64_t image_text_start_addr;         /* the start address of the text region */
 } compiler_invocation_t;
 
 #endif /* COMPILER_TYPE_H */
