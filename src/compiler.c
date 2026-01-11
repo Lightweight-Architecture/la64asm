@@ -140,7 +140,7 @@ bool la64_compiler_lowcodeline(compiler_line_t *cl)
         
         ci->rtlb[ci->rtlb_cnt].name = label;
         ci->rtlb[ci->rtlb_cnt].bw = bw;
-        ci->rtlb[ci->rtlb_cnt++].cllink = cl;
+        ci->rtlb[ci->rtlb_cnt++].ctlink = &(cl->token[i]);
 
         /* skip the 64bit for now */
         bitwalker_skip(&bw, 64);
@@ -186,7 +186,7 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
         /* sanity checking address */
         if(addr == COMPILER_LABEL_NOT_FOUND)
         {
-            diag_error(&(ci->rtlb[i].cllink->token[0]), "label \"%s\" not found\n", ci->rtlb[i].name);
+            diag_error(ci->rtlb[i].ctlink, "label \"%s\" not found\n", ci->rtlb[i].name);
         }
 
         /* using da bitwalker to fixup address */

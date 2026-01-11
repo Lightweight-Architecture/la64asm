@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
     char *name;                             /* unknown label looking for address */
     bitwalker_t bw;                         /* bitwalker state of when it was looked for (always 64bit skipped) */
-    compiler_line_t *cllink;                /* link to the originator of the entry */
+    compiler_token_t *ctlink;               /* link to the originator of the entry */
 } reloc_table_entry;
 
 typedef struct compiler_invocation {
