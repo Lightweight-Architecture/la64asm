@@ -67,6 +67,7 @@ typedef struct {
 typedef struct {
     char *name;                             /* name of resolved label */
     uint64_t addr;                          /* address of resolved label */
+    compiler_token_t *ctlink;               /* link to the originator of the label */
 } compiler_label_t;
 
 typedef struct {

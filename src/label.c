@@ -52,6 +52,23 @@ void code_token_label(compiler_invocation_t *ci)
     ci->label_cnt = 0;
 }
 
+compiler_label_t *label_lookup_internal(compiler_invocation_t *ci,
+                                        const char *name)
+{
+    /* iterating through all labels */
+    for(int i = 0; i < ci->label_cnt; i++)
+    {
+        /* checking if request name matches */
+        if(strcmp(ci->label[i].name, name) == 0)
+        {
+            /* returning label address*/
+            return &(ci->label[i]);
+        }
+    }
+
+    return NULL;
+}
+
 void code_token_label_append(compiler_token_t *ct)
 {
     /* accessing compiler line and invocation */
@@ -92,30 +109,25 @@ void code_token_label_append(compiler_token_t *ct)
     }
 
     /* checking for duplicated labels */
-    if(label_lookup(ci, name) != COMPILER_LABEL_NOT_FOUND)
+    compiler_label_t *label = label_lookup_internal(ci, name);
+
+    /* here we go */
+    if(label != NULL)
     {
-        diag_error(&(cl->token[0]), "duplicated label \"%s\"\n", name);
-        exit(1);
+        diag_note(label->ctlink, "label \"%s\" already defined here\n", name);
+        diag_error(ct, "duplicated label \"%s\"\n", name);
     }
 
+    ci->label[ci->label_cnt].ctlink = ct;
     ci->label[ci->label_cnt++].name = name;
 }
 
 uint64_t label_lookup(compiler_invocation_t *ci,
                       const char *name)
 {
-    /* iterating through all labels */
-    for(int i = 0; i < ci->label_cnt; i++)
-    {
-        /* checking if request name matches */
-        if(strcmp(ci->label[i].name, name) == 0)
-        {
-            /* returning label address*/
-            return ci->label[i].addr;
-        }
-    }
-
-    return COMPILER_LABEL_NOT_FOUND;
+    /* using internal implementation of the symbol */
+    compiler_label_t *label = label_lookup_internal(ci, name);
+    return (label == NULL) ? COMPILER_LABEL_NOT_FOUND : label->addr;
 }
 
 void code_token_label_insert_start(compiler_invocation_t *ci)
