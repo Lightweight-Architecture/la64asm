@@ -160,8 +160,8 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
     for(uint64_t i = 0; i < ci->line_cnt; i++)
     {
         /* checking for label */
-        if(ci->line[i].type == COMPILER_LINE_TYPE_LABEL ||
-           ci->line[i].type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE)
+        if(ci->line[i].type == COMPILER_LINE_TYPE_GLOBAL_LABEL ||
+           ci->line[i].type == COMPILER_LINE_TYPE_LOCAL_LABEL)
         {
             /* insert into labels */
             code_token_label_append(&(ci->line[i].token[0]));

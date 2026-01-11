@@ -24,6 +24,7 @@
 
 #include <la64asm/code.h>
 #include <la64asm/cmptok.h>
+#include <la64asm/diag.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -214,16 +215,15 @@ void code_tokengen(compiler_invocation_t *ci)
                 /* checking what type of label it is */
                 if(ci->line[i].token[0].str[0] == '_')
                 {
-                    ci->line[i].type = COMPILER_LINE_TYPE_LABEL;
+                    ci->line[i].type = COMPILER_LINE_TYPE_GLOBAL_LABEL;
                 }
                 else if(ci->line[i].token[0].str[0] == '.')
                 {
-                    ci->line[i].type = COMPILER_LINE_TYPE_LABEL_IN_SCOPE;
+                    ci->line[i].type = COMPILER_LINE_TYPE_LOCAL_LABEL;
                 }
                 else
                 {
-                    printf("[!] \"%s\" is not a legal label definition \n", ci->line[i].token[0].str);
-                    exit(1);
+                    diag_error(&(ci->line[i].token[0]), "illegal label definition \"%s\"\n", ci->line[i].token[0].str);
                 }
 
                 continue;

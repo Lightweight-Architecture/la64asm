@@ -37,8 +37,8 @@ void code_token_label(compiler_invocation_t *ci)
     ci->label_cnt = 1;
     for(int i = 0; i < ci->line_cnt; i++)
     {
-        if(ci->line[i].type == COMPILER_LINE_TYPE_LABEL ||
-           ci->line[i].type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE ||
+        if(ci->line[i].type == COMPILER_LINE_TYPE_GLOBAL_LABEL ||
+           ci->line[i].type == COMPILER_LINE_TYPE_LOCAL_LABEL ||
            ci->line[i].type == COMPILER_LINE_TYPE_SECTION_DATA)
         {
             (ci->label_cnt)++;
@@ -84,7 +84,7 @@ void code_token_label_append(compiler_token_t *ct)
     name[size - 1] = '\0';
 
     /* checking if its in scope */
-    if(ct->cl->type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE)
+    if(ct->cl->type == COMPILER_LINE_TYPE_LOCAL_LABEL)
     {
         /* null poiner checking scope */
         if(ci->label_scope == NULL)
