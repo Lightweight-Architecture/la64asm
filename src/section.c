@@ -30,6 +30,7 @@
 #include <lautils/parser.h>
 #include <lautils/bitwalker.h>
 #include <la64asm/code.h>
+#include <la64asm/diag.h>
 
 void code_token_section(compiler_invocation_t *ci)
 {
@@ -47,8 +48,7 @@ void code_token_section(compiler_invocation_t *ci)
                     /* checking count */
                     if(ci->line[i].token_cnt < 3)
                     {
-                        printf("[!] not enough tokens for section data in .data\n");
-                        exit(1);
+                        diag_error(&(ci->line[i].token[ci->line[i].token_cnt - 1]), "sufficient tokens for entry in .data section\n");
                     }
 
                     /* inserting address as label */
@@ -91,6 +91,19 @@ void code_token_section(compiler_invocation_t *ci)
                                 ci->image[ci->image_addr + j] = (unsigned char)buffer[j];
                             }
                             ci->image_addr += pr.len;
+                        }
+                        else if(pr.type == laParserValueTypeString)
+                        {
+                            if(dbs != 64)
+                            {
+                                diag_error(&(ci->line[i].token[a]), "don't put labels inside improper data types, i watch you!\n");
+                            }
+
+                            /* using finally the relocation table to its full extend */
+                            ci->rtlb[ci->rtlb_cnt].name = strdup(ci->line[i].token[a].str);
+                            ci->rtlb[ci->rtlb_cnt].ctlink = &(ci->line[i].token[a]);
+                            bitwalker_init(&(ci->rtlb[ci->rtlb_cnt++].bw), &(ci->image[ci->image_addr]), 8, BW_LITTLE_ENDIAN);
+                            ci->image_addr += 8;
                         }
                         else
                         {
