@@ -34,9 +34,11 @@
 
 #include <lautils/bitwalker.h>
 
-bool la64_compiler_lowcodeline(compiler_invocation_t *ci,
-                               compiler_line_t *cl)
+bool la64_compiler_lowcodeline(compiler_line_t *cl)
 {
+    /* accessing compiler invocation */
+    compiler_invocation_t *ci = cl->ci;
+
     /* parameter count check */
     if(cl->token_cnt <= 0)
     {
@@ -163,11 +165,11 @@ void la64_compiler_lowlevel(compiler_invocation_t *ci)
            ci->line[i].type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE)
         {
             /* insert into labels */
-            code_token_label_append(ci, &(ci->line[i]));
+            code_token_label_append(&(ci->line[i].token[0]));
         }
         else if(ci->line[i].type == COMPILER_LINE_TYPE_ASM)
         {
-            la64_compiler_lowcodeline(ci, &(ci->line[i]));
+            la64_compiler_lowcodeline(&(ci->line[i]));
         }
     }
     

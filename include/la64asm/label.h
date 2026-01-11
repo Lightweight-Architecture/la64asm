@@ -30,7 +30,7 @@
 #include <la64asm/type.h>
 
 void code_token_label(compiler_invocation_t *ci);
-void code_token_label_append(compiler_invocation_t *ci, compiler_line_t *cl);
+void code_token_label_append(compiler_token_t *ct);
 void code_token_label_insert_start(compiler_invocation_t *ci);
 
 uint64_t label_lookup(compiler_invocation_t *ci, const char *name);

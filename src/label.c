@@ -52,32 +52,27 @@ void code_token_label(compiler_invocation_t *ci)
     ci->label_cnt = 0;
 }
 
-void code_token_label_append(compiler_invocation_t *ci,
-                             compiler_line_t *cl)
+void code_token_label_append(compiler_token_t *ct)
 {
-    /* null pointer check */
-    if(ci == NULL ||
-       ci->label == NULL ||
-       cl == NULL)
-    {
-        return;
-    }
+    /* accessing compiler line and invocation */
+    compiler_line_t *cl = ct->cl;
+    compiler_invocation_t *ci = cl->ci;
 
     /* assign address to label */
     ci->label[ci->label_cnt].addr = ci->image_addr;
 
     /* copying label name */
-    size_t size = strlen(cl->str);
-    char *name = strdup(cl->str);
+    size_t size = strlen(ct->str);
+    char *name = strdup(ct->str);
     name[size - 1] = '\0';
 
     /* checking if its in scope */
-    if(cl->type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE)
+    if(ct->cl->type == COMPILER_LINE_TYPE_LABEL_IN_SCOPE)
     {
         /* null poiner checking scope */
         if(ci->label_scope == NULL)
         {
-            diag_error(&(cl->token[0]), "defining a local label out of any global label is illegal \"%s\"\n", name);
+            diag_error(ct, "defining a local label out of any global label is illegal \"%s\"\n", name);
         }
 
         /* adjust size */
